@@ -45,8 +45,6 @@ function mirrorDesign() {
     }
   }
 }
-
-
 function undoMirror() {
   let boxes = document.querySelectorAll('.box');
   let mirrorCount = parseInt(document.querySelector('#mirror-count').value) - 1;
@@ -122,7 +120,12 @@ function createGrid() {
   // Get the grid element and clear its content
   let gridElement = document.querySelector('#grid');
   gridElement.innerHTML = '';
+  document.getElementById('download-button').style.display = 'block';
 
+  // Attach the function to the button's click event
+  document.getElementById('download-button').addEventListener('click', () => {
+    downloadFullPageScreenshot();
+  });
   // Get the number of columns and rows
   let columnsElement = document.querySelector('#columns');
   let rowsElement = document.querySelector('#rows');
@@ -189,3 +192,38 @@ function createGrid() {
   buttonContainer.appendChild(finishButton);
   document.body.appendChild(buttonContainer);
 }
+
+function downloadFullPageScreenshot() {
+  const body = document.body;
+  const html = document.documentElement;
+  const width = Math.max(body.scrollWidth, body.offsetWidth, html.clientWidth, html.scrollWidth, html.offsetWidth);
+  const height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
+  
+  // Create a canvas element to capture the full page screenshot
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  
+  const context = canvas.getContext('2d');
+
+  // Capture the full page screenshot
+  html2canvas(document.body, {
+    canvas: canvas,
+    width: width,
+    height: height,
+    scrollX: window.scrollX,
+    scrollY: window.scrollY,
+  }).then(canvas => {
+    // Convert the canvas content to a data URL
+    const image = canvas.toDataURL('image/png');
+
+    // Create a link element and trigger a click event to download the screenshot
+    const link = document.createElement('a');
+    link.href = image;
+    link.download = 'full-page-screenshot.png';
+    link.click();
+  });
+}
+
+// Attach the function to the button's click event
+document.getElementById('full-page-screenshot').addEventListener('click', downloadFullPageScreenshot);
