@@ -193,6 +193,42 @@ function createGrid() {
   document.body.appendChild(buttonContainer);
 }
 
+
+let isDragging = false;
+let startBox = null;
+
+document.querySelector('.grid').addEventListener('mousedown', event => {
+  isDragging = true;
+  startBox = event.target;
+
+  if (startBox.classList.contains('box')) {
+    startBox.style.backgroundColor = currentColor;
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  isDragging = false;
+  startBox = null;
+});
+
+document.querySelectorAll('.box').forEach(box => {
+  box.addEventListener('mouseenter', () => {
+    if (isDragging && startBox) {
+      box.style.backgroundColor = startBox.style.backgroundColor;
+    }
+  });
+});
+
+document.addEventListener('mousemove', event => {
+  if (isDragging && startBox) {
+    const hoveredBox = document.elementFromPoint(event.clientX, event.clientY);
+    if (hoveredBox && hoveredBox.classList.contains('box')) {
+      hoveredBox.style.backgroundColor = startBox.style.backgroundColor;
+    }
+  }
+});
+
+
 function downloadFullPageScreenshot() {
   const body = document.body;
   const html = document.documentElement;
