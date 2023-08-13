@@ -11,67 +11,69 @@ function markBox(box) {
     box.style.backgroundColor = currentColor;
   }
 }
+
 function mirrorDesign() {
   let boxes = document.querySelectorAll('.box');
-  let mirrorCount = parseInt(document.querySelector('#mirror-count').value);
-  let mirrorDistance = parseInt(document.querySelector('#mirror-distance').value);
-  let columns = parseInt(document.querySelector('#columns').value);
-  let rows = parseInt(document.querySelector('#rows').value);
+  let copyCount = parseInt(document.querySelector('#copy-count').value);
+  let copyDistance = parseInt(document.querySelector('#copy-distance').value);
+  let maxMarks = parseInt(document.querySelector('#max-marks').value);
+  let totalPins = parseInt(document.querySelector('#total-pins').value);
 
-  let mirroredIndexes = [];
+  let copiedIndexes = [];
 
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < columns; col++) {
-      let index = row * columns + col;
+  for (let row = 0; row < totalPins; row++) {
+    for (let col = 0; col < maxMarks; col++) {
+      let index = row * maxMarks + col;
       if (boxes[index].style.backgroundColor === currentColor) {
-        mirroredIndexes.push(index);
+        copiedIndexes.push(index);
       }
     }
   }
 
-  for (let m = 1; m <= mirrorCount; m++) {
-    let mirroredCol = columns + m * mirrorDistance;
+  for (let c = 1; c <= copyCount; c++) {
+    let copiedCol = maxMarks + c * copyDistance;
 
-    if (mirroredCol < columns + mirrorCount * mirrorDistance) {
-      mirroredIndexes.forEach((index) => {
-        let row = Math.floor(index / columns);
-        let col = index % columns;
-        let mirroredIndex = row * columns + mirroredCol + (col - columns);
+    if (copiedCol < maxMarks + copyCount * copyDistance) {
+      copiedIndexes.forEach((index) => {
+        let row = Math.floor(index / maxMarks);
+        let col = index % maxMarks;
+        let copiedIndex = row * maxMarks + copiedCol + (col - maxMarks);
 
-        if (mirroredIndex >= 0 && mirroredIndex < boxes.length) {
-          boxes[mirroredIndex].style.backgroundColor = currentColor;
+        if (copiedIndex >= 0 && copiedIndex < boxes.length) {
+          boxes[copiedIndex].style.backgroundColor = currentColor;
         }
       });
     }
   }
 }
-function undoMirror() {
+
+function undoCopy() {
   let boxes = document.querySelectorAll('.box');
-  let mirrorCount = parseInt(document.querySelector('#mirror-count').value) - 1;
-  let mirrorDistance = parseInt(document.querySelector('#mirror-distance').value);
-  let columns = parseInt(document.querySelector('#columns').value);
-  let rows = parseInt(document.querySelector('#rows').value);
+  let copyCount = parseInt(document.querySelector('#copy-count').value) - 1;
+  let copyDistance = parseInt(document.querySelector('#copy-distance').value);
+  let maxMarks = parseInt(document.querySelector('#max-marks').value);
+  let totalPins = parseInt(document.querySelector('#total-pins').value);
 
-  let lastColumn = columns + (mirrorCount - 1) * mirrorDistance;
+  let lastColumn = maxMarks + (copyCount - 1) * copyDistance;
 
-  for (let row = 0; row < rows; row++) {
-    let mirroredIndexes = [];
+  for (let row = 0; row < totalPins; row++) {
+    let copiedIndexes = [];
 
-    for (let col = 0; col < columns; col++) {
-      let index = row * columns + col;
+    for (let col = 0; col < maxMarks; col++) {
+      let index = row * maxMarks + col;
       if (boxes[index].style.backgroundColor === currentColor) {
-        mirroredIndexes.push(index);
+        copiedIndexes.push(index);
       }
     }
 
-    for (let m = 1; m <= mirrorCount; m++) {
-      mirroredIndexes.forEach((index) => {
-        let col = index % columns;
-        let mirroredCol = col + m * mirrorDistance;
+    for (let c = 1; c <= copyCount; c++) {
+      copiedIndexes.forEach((index) => {
+        let col = index % maxMarks;
+        let copiedCol = col + c * copyDistance;
 
-        if (mirroredCol < columns) {
-          let mirroredIndex = row * columns + mirroredCol;
-          boxes[mirroredIndex].style.backgroundColor = '';
+        if (copiedCol < maxMarks) {
+          let copiedIndex = row * maxMarks + copiedCol;
+          boxes[copiedIndex].style.backgroundColor = '';
         }
       });
     }
@@ -81,14 +83,14 @@ function undoMirror() {
 function extractPoints() {
   let result = '';
   let boxes = document.querySelectorAll('.box');
-  let columns = parseInt(document.querySelector('#columns').value);
-  let rows = parseInt(document.querySelector('#rows').value);
+  let maxMarks = parseInt(document.querySelector('#max-marks').value);
+  let totalPins = parseInt(document.querySelector('#total-pins').value);
 
-  for (let i = 0; i < boxes.length / columns; i++) {
+  for (let i = 0; i < boxes.length / maxMarks; i++) {
     let start = -1;
     let end = -1;
-    for (let j = 0; j < columns; j++) {
-      let box = boxes[i * columns + j];
+    for (let j = 0; j < maxMarks; j++) {
+      let box = boxes[i * maxMarks + j];
       if (box.style.backgroundColor === 'black') {
         if (start === -1) {
           start = j;
@@ -116,29 +118,24 @@ function extractPoints() {
   window.URL.revokeObjectURL(url);
 }
 
-function createGrid() {
+function createGraph() {
   // Get the grid element and clear its content
   let gridElement = document.querySelector('#grid');
   gridElement.innerHTML = '';
-  document.getElementById('download-button').style.display = 'block';
 
-  // Attach the function to the button's click event
-  document.getElementById('download-button').addEventListener('click', () => {
-    downloadFullPageScreenshot();
-  });
-  // Get the number of columns and rows
-  let columnsElement = document.querySelector('#columns');
-  let rowsElement = document.querySelector('#rows');
-  let columnsValue = parseInt(columnsElement.value);
-  let rowsValue = parseInt(rowsElement.value);
+  // Get the max marks and total pins
+  let maxMarksElement = document.querySelector('#max-marks');
+  let totalPinsElement = document.querySelector('#total-pins');
+  let maxMarksValue = parseInt(maxMarksElement.value);
+  let totalPinsValue = parseInt(totalPinsElement.value);
 
-  // Set the CSS variables for the number of columns and rows
-  gridElement.style.setProperty('--columns', columnsValue);
-  gridElement.style.setProperty('--rows', rowsValue);
+  // Set the CSS variables for max marks and total pins
+  gridElement.style.setProperty('--columns', maxMarksValue);
+  gridElement.style.setProperty('--rows', totalPinsValue);
 
-  // Create the grid boxes
-  for (let i = 0; i < rowsValue; i++) {
-    for (let j = 0; j < columnsValue; j++) {
+  // Create the graph nodes
+  for (let i = 0; i < totalPinsValue; i++) {
+    for (let j = 0; j < maxMarksValue; j++) {
       let box = document.createElement('div');
       box.classList.add('box');
       box.onclick = () => markBox(box);
@@ -146,120 +143,49 @@ function createGrid() {
     }
   }
 
-  // Hide the input elements and button for choosing the number of rows and columns
-  columnsElement.parentElement.style.display = 'none';
-  rowsElement.parentElement.style.display = 'none';
-  document.querySelector('button[onclick="createGrid()"]').style.display = 'none';
+  // Hide the input elements and button for choosing max marks and total pins
+  maxMarksElement.parentElement.style.display = 'none';
+  totalPinsElement.parentElement.style.display = 'none';
+  document.querySelector('button[onclick="createGraph()"]').style.display = 'none';
 
   // Add the remaining input elements and buttons
   let buttonContainer = document.createElement('div');
   buttonContainer.classList.add('button-container');
   buttonContainer.innerHTML = `
-    <label for="mirror-count">Number of mirrors:</label>
-    <input type="number" id="mirror-count" value="1">
+    <label for="copy-count">Number of copies:</label>
+    <input type="number" id="copy-count" value="1">
   `;
   document.body.appendChild(buttonContainer);
 
   buttonContainer = document.createElement('div');
   buttonContainer.classList.add('button-container');
   buttonContainer.innerHTML = `
-    <label for="mirror-distance">Distance between mirrors:</label>
-    <input type="number" id="mirror-distance" value="10">
+    <label for="copy-distance">Distance between copies:</label>
+    <input type="number" id="copy-distance" value="10">
   `;
   document.body.appendChild(buttonContainer);
 
   buttonContainer = document.createElement('div');
   buttonContainer.classList.add('button-container');
-  let mirrorButton = document.createElement('button');
-  mirrorButton.onclick = mirrorDesign;
-  mirrorButton.textContent = 'Mirror';
-  buttonContainer.appendChild(mirrorButton);
+  let copyButton = document.createElement('button');
+  copyButton.onclick = mirrorDesign;
+  copyButton.textContent = 'Copy';
+  buttonContainer.appendChild(copyButton);
   document.body.appendChild(buttonContainer);
 
   buttonContainer = document.createElement('div');
   buttonContainer.classList.add('button-container');
   let undoButton = document.createElement('button');
-  undoButton.onclick = undoMirror;
+  undoButton.onclick = undoCopy;
   undoButton.textContent = 'Undo';
   buttonContainer.appendChild(undoButton);
   document.body.appendChild(buttonContainer);
 
   buttonContainer = document.createElement('div');
   buttonContainer.classList.add('button-container');
-  let finishButton = document.createElement('button');
-  finishButton.onclick = extractPoints;
-  finishButton.textContent = 'Finish';
-  buttonContainer.appendChild(finishButton);
+  let completeButton = document.createElement('button');
+  completeButton.onclick = extractPoints;
+  completeButton.textContent = 'Completed';
+  buttonContainer.appendChild(completeButton);
   document.body.appendChild(buttonContainer);
 }
-
-
-let isDragging = false;
-let startBox = null;
-
-document.querySelector('.grid').addEventListener('mousedown', event => {
-  isDragging = true;
-  startBox = event.target;
-
-  if (startBox.classList.contains('box')) {
-    startBox.style.backgroundColor = currentColor;
-  }
-});
-
-document.addEventListener('mouseup', () => {
-  isDragging = false;
-  startBox = null;
-});
-
-document.querySelectorAll('.box').forEach(box => {
-  box.addEventListener('mouseenter', () => {
-    if (isDragging && startBox) {
-      box.style.backgroundColor = startBox.style.backgroundColor;
-    }
-  });
-});
-
-document.addEventListener('mousemove', event => {
-  if (isDragging && startBox) {
-    const hoveredBox = document.elementFromPoint(event.clientX, event.clientY);
-    if (hoveredBox && hoveredBox.classList.contains('box')) {
-      hoveredBox.style.backgroundColor = startBox.style.backgroundColor;
-    }
-  }
-});
-
-
-function downloadFullPageScreenshot() {
-  const body = document.body;
-  const html = document.documentElement;
-  const width = Math.max(body.scrollWidth, body.offsetWidth, html.clientWidth, html.scrollWidth, html.offsetWidth);
-  const height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
-  
-  // Create a canvas element to capture the full page screenshot
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  
-  const context = canvas.getContext('2d');
-
-  // Capture the full page screenshot
-  html2canvas(document.body, {
-    canvas: canvas,
-    width: width,
-    height: height,
-    scrollX: window.scrollX,
-    scrollY: window.scrollY,
-  }).then(canvas => {
-    // Convert the canvas content to a data URL
-    const image = canvas.toDataURL('image/png');
-
-    // Create a link element and trigger a click event to download the screenshot
-    const link = document.createElement('a');
-    link.href = image;
-    link.download = 'full-page-screenshot.png';
-    link.click();
-  });
-}
-
-// Attach the function to the button's click event
-document.getElementById('full-page-screenshot').addEventListener('click', downloadFullPageScreenshot);
