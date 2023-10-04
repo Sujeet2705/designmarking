@@ -1,4 +1,6 @@
 let currentColor = 'black';
+let copyMade = false;
+
 
 function changeColor(input) {
   currentColor = input.value;
@@ -11,41 +13,68 @@ function markBox(box) {
     box.style.backgroundColor = currentColor;
   }
 }
-
 function mirrorDesign() {
-  let boxes = document.querySelectorAll('.box');
-  let copyCount = parseInt(document.querySelector('#copy-count').value);
-  let copyDistance = parseInt(document.querySelector('#copy-distance').value);
-  let maxMarks = parseInt(document.querySelector('#max-marks').value);
-  let totalPins = parseInt(document.querySelector('#total-pins').value);
+  if (!copyMade) {
+    let boxes = document.querySelectorAll('.box');
+    let copyCount = parseInt(document.querySelector('#copy-count').value);
+    let copyDistance = parseInt(document.querySelector('#copy-distance').value);
+    let maxMarks = parseInt(document.querySelector('#max-marks').value);
+    let totalPins = parseInt(document.querySelector('#total-pins').value);
 
-  let copiedIndexes = [];
+    let copiedIndexes = [];
 
-  for (let row = 0; row < totalPins; row++) {
-    for (let col = 0; col < maxMarks; col++) {
-      let index = row * maxMarks + col;
-      if (boxes[index].style.backgroundColor === currentColor) {
-        copiedIndexes.push(index);
+    // Calculate the available space on the right side of the grid
+    let availableSpace = (maxMarks - copyCount * copyDistance) * totalPins;
+
+    // Calculate the number of selected boxes
+    let selectedBoxes = 0;
+
+    for (let row = 0; row < totalPins; row++) {
+      for (let col = 0; col < maxMarks; col++) {
+        let index = row * maxMarks + col;
+        if (boxes[index].style.backgroundColor === currentColor) {
+          selectedBoxes++;
+        }
       }
     }
-  }
 
-  for (let c = 1; c <= copyCount; c++) {
-    let copiedCol = maxMarks + c * copyDistance;
+    // Calculate the number of boxes required for the selected copies
+    let requiredBoxes = (copyCount + 1) * selectedBoxes; // +1 for the original
 
-    if (copiedCol < maxMarks + copyCount * copyDistance) {
-      copiedIndexes.forEach((index) => {
-        let row = Math.floor(index / maxMarks);
-        let col = index % maxMarks;
-        let copiedIndex = row * maxMarks + copiedCol + (col - maxMarks);
-
-        if (copiedIndex >= 0 && copiedIndex < boxes.length) {
-          boxes[copiedIndex].style.backgroundColor = currentColor;
+    if (requiredBoxes <= availableSpace && selectedBoxes > 0) {
+      for (let row = 0; row < totalPins; row++) {
+        for (let col = 0; col < maxMarks; col++) {
+          let index = row * maxMarks + col;
+          if (boxes[index].style.backgroundColor === currentColor) {
+            copiedIndexes.push(index);
+          }
         }
-      });
+      }
+
+      for (let c = 1; c <= copyCount; c++) {
+        let copiedCol = maxMarks + c * copyDistance;
+
+        if (copiedCol < maxMarks + copyCount * copyDistance) {
+          copiedIndexes.forEach((index) => {
+            let row = Math.floor(index / maxMarks);
+            let col = index % maxMarks;
+            let copiedIndex = row * maxMarks + copiedCol + (col - maxMarks);
+
+            if (copiedIndex >= 0 && copiedIndex < boxes.length) {
+              boxes[copiedIndex].style.backgroundColor = currentColor;
+            }
+          });
+        }
+      }
+
+      copyMade = true;
+    } else {
+      alert('Not enough space to copy. Reduce the number of copies or increase the distance.');
     }
   }
 }
+
+
 
 function undoCopy() {
   let boxes = document.querySelectorAll('.box');
@@ -78,6 +107,7 @@ function undoCopy() {
       });
     }
   }
+  copyMade = false;
 }
 
 function extractPoints() {
@@ -118,6 +148,7 @@ function extractPoints() {
   window.URL.revokeObjectURL(url);
 }
 
+
 function createGraph() {
   // Get the grid element and clear its content
   let gridElement = document.querySelector('#grid');
@@ -153,7 +184,7 @@ function createGraph() {
   buttonContainer.classList.add('button-container');
   buttonContainer.innerHTML = `
     <label for="copy-count">Number of copies:</label>
-    <input type="number" id="copy-count" value="1">
+    <input type="number" id="copy-count" value="2" min="2">
   `;
   document.body.appendChild(buttonContainer);
 
@@ -161,7 +192,7 @@ function createGraph() {
   buttonContainer.classList.add('button-container');
   buttonContainer.innerHTML = `
     <label for="copy-distance">Distance between copies:</label>
-    <input type="number" id="copy-distance" value="10">
+    <input type="number" id="copy-distance" value="1" min="1"> <!-- Minimum value is 1 -->
   `;
   document.body.appendChild(buttonContainer);
 
@@ -188,4 +219,50 @@ function createGraph() {
   completeButton.textContent = 'Completed';
   buttonContainer.appendChild(completeButton);
   document.body.appendChild(buttonContainer);
+
+  let downloadButton = document.createElement('button');
+  downloadButton.textContent = 'Download Grid';
+  downloadButton.onclick = downloadGridImage;
+  buttonContainer.appendChild(downloadButton);
+  document.body.appendChild(buttonContainer);
+
+  for (let i = 1; i <= totalPinsValue; i++) {
+    let rowNumber = document.createElement('div');
+    rowNumber.classList.add('number', 'row-number');
+    rowNumber.textContent = i;
+    document.querySelector('.row-numbering').appendChild(rowNumber);
+  }
+
+  // Add column numbering
+  for (let i = 1; i <= maxMarksValue; i++) {
+    let colNumber = document.createElement('div');
+    colNumber.classList.add('number', 'col-number');
+    colNumber.textContent = i;
+    document.querySelector('.column-numbering').appendChild(colNumber);
+  }
+}
+
+
+
+function downloadGridImage() {
+  // Get the grid element
+  let gridElement = document.querySelector('#grid');
+
+  // Set the background color of the grid element (change to your desired background color)
+  gridElement.style.backgroundColor = 'white';
+
+  // Use html2canvas to capture the grid element as an image
+  html2canvas(gridElement, { backgroundColor: null }).then(function (canvas) {
+    // Restore the original background color
+    gridElement.style.backgroundColor = ''; // Set it back to the original color or remove it
+
+    // Convert the canvas to a data URL
+    let dataURL = canvas.toDataURL('image/png');
+
+    // Create a link to trigger the download
+    let link = document.createElement('a');
+    link.href = dataURL;
+    link.download = 'grid.png';
+    link.click();
+  });
 }
